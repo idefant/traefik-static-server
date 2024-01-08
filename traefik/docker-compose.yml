@@ -1,0 +1,28 @@
+services:
+  traefik:
+    container_name: traefik
+    image: traefik:latest
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./:/etc/traefik
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.traefik.entrypoints=websecure
+      - traefik.http.routers.traefik.rule=Host(`traefik.domain.com`)
+      - traefik.http.routers.traefik.tls=true
+      - traefik.http.routers.traefik.tls.certresolver=myresolver
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.services.traefik-traefik.loadbalancer.server.port=888
+
+      # Авторизация по логину и паролю (Заменить логин/секрет на свои)
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=admin:$$apr1$$vDSqkf.v$$GTJOtsd9CBiAFFnHTI2Ds1"
+      - "traefik.http.routers.traefik.middlewares=traefik-auth"
+
+networks:
+  default:
+    name: traefik
+    external: true

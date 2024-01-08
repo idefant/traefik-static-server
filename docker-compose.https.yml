@@ -1,0 +1,24 @@
+version: "3"
+
+services:
+  client:
+    image: nginx
+    container_name: ${PROJ_NAME}
+    restart: always
+    ports: [80]
+    labels:
+      - traefik.http.routers.${PROJ_NAME}.rule=Host(`${DOMAIN}`)
+      - traefik.http.routers.${PROJ_NAME}.entrypoints=web
+      - traefik.http.routers.${PROJ_NAME}.middlewares=to-https@file
+
+      - "traefik.http.routers.${PROJ_NAME}-https.entrypoints=websecure"
+      - "traefik.http.routers.${PROJ_NAME}-https.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.${PROJ_NAME}-https.tls.certresolver=myresolver"
+    volumes:
+      - ./shared:/usr/share/nginx/html
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+
+networks:
+  default:
+    name: traefik
+    external: true
